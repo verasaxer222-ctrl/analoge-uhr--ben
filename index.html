@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uhrzeit-Detektive</title>
+<style>
+body{font-family:Arial,sans-serif;text-align:center;margin:20px;color:#111827}
+.task{font-size:3rem;font-weight:bold;margin:20px;white-space:nowrap}
+.task.digital{color:#2563eb}
+.layout{display:flex;justify-content:center;gap:40px;align-items:flex-start;flex-wrap:wrap}
+.controls{width:320px}.row{margin-bottom:24px}.title{font-size:1.4rem;font-weight:bold}
+.adjust{display:flex;justify-content:center;gap:20px}.btn{width:80px;height:60px;border:none;border-radius:10px;color:#fff;font-size:1.4rem;cursor:pointer}
+.plus{background:#16a34a}.minus{background:#f97316}
+.action button{display:block;width:100%;margin:10px 0;padding:12px;border:none;border-radius:10px;color:#fff;font-size:1.1rem}.check{background:#16a34a}.next{background:#2563eb}
+.clocksec{display:flex;gap:20px}.help{width:120px;height:120px;background:#facc15;border:none;border-radius:12px;font-weight:bold;cursor:pointer}.result{font-size:1.5rem;font-weight:bold;min-height:60px;margin-top:20px}
+</style></head><body>
+<div id="task" class="task"></div>
+<div class="layout"><div class="controls">
+<div class="row"><div class="title">Stunden</div><div class="adjust"><button class="btn minus" onclick="chgH(-1)">−</button><button class="btn plus" onclick="chgH(1)">+</button></div></div>
+<div class="row"><div class="title">Minuten</div><div class="adjust"><button class="btn minus" onclick="chgM(-5)">−5</button><button class="btn plus" onclick="chgM(5)">+5</button></div></div>
+<div class="action"><button id="check" class="check">Kontrollieren</button><button id="next" class="next">Neue Aufgabe</button></div></div>
+<div class="clocksec"><canvas id="clock" width="360" height="360"></canvas><button id="help" class="help">Hilfe anzeigen</button></div></div>
+<div id="result" class="result"></div>
+<script>
+const opts=[0,5,10,15,20,30,40,45,50,55]; let target={},cur={h:12,m:0},checked=false,showHelp=false; const ctx=clock.getContext('2d');
+const pad=n=>String(n).padStart(2,'0');
+function textTime(h,m){const nh=h+1>12?1:h+1;return {0:h+' Uhr',5:'5 nach '+h,10:'10 nach '+h,15:'Viertel nach '+h,20:'20 nach '+h,30:'halb '+nh,40:'20 vor '+nh,45:'Viertel vor '+nh,50:'10 vor '+nh,55:'5 vor '+nh}[m];}
+function newTask(){target={h:Math.floor(Math.random()*12)+1,m:opts[Math.floor(Math.random()*opts.length)]};cur={h:12,m:0};checked=false;result.innerHTML='';if(Math.random()<0.7){task.className='task';task.textContent=textTime(target.h,target.m);}else{task.className='task digital';task.textContent=pad(target.h)+':'+pad(target.m);}draw();}
+function chgH(v){cur.h+=v;if(cur.h<1)cur.h=12;if(cur.h>12)cur.h=1;draw();}
+function chgM(v){cur.m=(cur.m+v+60)%60;draw();}
+function draw(){const cx=180,cy=180,r=150;ctx.clearRect(0,0,360,360);ctx.strokeStyle='#8b5cf6';ctx.lineWidth=5;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();for(let i=1;i<=12;i++){let a=i*Math.PI/6-Math.PI/2;ctx.font='24px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i,cx+Math.cos(a)*118,cy+Math.sin(a)*118);}for(let i=0;i<60;i++){let a=i*Math.PI/30-Math.PI/2;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*(i%5?138:126),cy+Math.sin(a)*(i%5?138:126));ctx.lineTo(cx+Math.cos(a)*148,cy+Math.sin(a)*148);ctx.stroke();}if(showHelp){ctx.fillStyle='#059669';for(let i=0;i<12;i++){let a=i*Math.PI/6-Math.PI/2;ctx.fillText(i===0?'00':i*5,cx+Math.cos(a)*170,cy+Math.sin(a)*170);}}let ha=((cur.h%12)+cur.m/60)*Math.PI/6-Math.PI/2;let ma=cur.m*Math.PI/30-Math.PI/2;ctx.strokeStyle='#2563eb';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(ha)*75,cy+Math.sin(ha)*75);ctx.stroke();ctx.strokeStyle='#000';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(ma)*118,cy+Math.sin(ma)*118);ctx.stroke();ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fill();}
+check.onclick=()=>{if(cur.h===target.h&&cur.m===target.m){result.style.color='green';result.textContent='✅ Richtig!';}else{result.style.color='crimson';result.innerHTML='❌ Nicht richtig.<br><strong>'+pad(target.h)+':'+pad(target.m)+'</strong>';}checked=true;};
+next.onclick=newTask;help.onclick=()=>{showHelp=!showHelp;help.textContent=showHelp?'Hilfe ausblenden':'Hilfe anzeigen';draw();};document.addEventListener('keydown',e=>{if(e.key==='Enter'){if(!checked)check.click();else newTask();}});newTask();
+</script></body></html>
